@@ -17,11 +17,18 @@
 
 ### 1. 单折训练过程折线图（共5张）
 - 基于每折 `trainlog.json` 中的 epoch 级数据，分别绘制 Loss、Accuracy、IoU 随训练轮次的变化曲线，清晰呈现模型从欠拟合到收敛的完整过程，可追溯每一步训练的指标变化。
+<img width="2556" height="878" alt="e981718616be24679353915d19e552f9" src="https://github.com/user-attachments/assets/934e0843-b072-4a04-9623-de9c376b3015" />
+<img width="2556" height="873" alt="ae0301179bf63048344716c903cc39e7" src="https://github.com/user-attachments/assets/31f6c3f2-368c-4bf3-9558-c053a53a9bed" />
+<img width="1278" height="439" alt="aab895ed9e39b4bd198e2774a91a5c56" src="https://github.com/user-attachments/assets/0dbcb4f4-9236-45cb-9d64-708d251326a5" />
+<img width="2553" height="870" alt="d08fa80c72be99ebd7e5184abefbc0ae" src="https://github.com/user-attachments/assets/fe60feb7-8f33-4b24-b233-30ae467d5491" />
+<img width="2556" height="870" alt="6f7f4421b32787402300253d68ce8fb4" src="https://github.com/user-attachments/assets/26b9a658-4f46-4b8c-9b3c-78606f55ca4b" />
 
 ### 2. 5折测试指标汇总折线图（当前展示图）
 - **测试准确率折线图**：基于各折 `test_metrics.json` 中的测试准确率数据，展示 5 折模型在独立测试集上的分类准确率（范围 93.66%~94.11%），验证模型在不同数据划分下的稳定性；
 - **测试损失折线图**：基于各折测试损失数据，展示模型在测试集上的损失值（范围 0.1426~0.1511），辅助判断模型是否存在过拟合；
 - **测试 IoU 折线图**：基于各折测试 mIoU 数据，展示模型在测试集上的空间分割能力（范围 0.4342~0.4508），体现模型对不同地物类别的分割稳定性。
+  <img width="2331" height="606" alt="5d127bf840f228847a9a65f80298e9c2" src="https://github.com/user-attachments/assets/bd458c97-9e1d-4690-801f-d00aafa15b6c" />
+
 这些图表的原始数据均来自实验过程中留存的 `test_metrics.json` 文件，可随时基于原始数据重新生成，验证了 PSE-TAE 模型在遥感影像分类任务中的有效性，也体现了训练过程的稳定性和模型泛化能力，同时保障了可视化结果的可复现性。
 
 ## 四、项目复现过程中遇到的核心问题及解决
