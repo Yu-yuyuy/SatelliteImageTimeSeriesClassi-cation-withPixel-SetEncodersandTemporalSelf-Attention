@@ -1,202 +1,41 @@
-# Satellite Image Time Series Classification with Pixel-Set Encoders and Temporal Self-Attention (CVPR 2020, Oral)
 
+# PSE-TAE 遥感影像时空分类模型复现
+本仓库围绕课程作业要求，完整复现了基于 PSE（Pixel-Set Encoder）+ TAE（Temporal Attention Encoder）架构的遥感影像像素级时空分类模型，从环境搭建到结果可视化完成全流程验证，重点验证该模型在 Sentinel-2 卫星影像数据集上的分类效果，同时全程注重项目的可复现性，确保实验流程可追溯、可重复。
+论文来源DOI：10.1109/CVPR42600.2020.01233
+参考仓库https://github.com/VSainteuf/pytorch-psetae?tab=readme-ov-file
+## 一、代码核心功能
+这份代码面向 Sentinel-2 遥感影像（S2-2017-T31TFM 数据集）的像素级多类别分类任务，核心是融合空间与时间维度特征实现 20 类地物精准分类，`train.py` 和 `inference.py` 构成“训练-验证-测试-推理”完整流程。数据处理上，筛选 20 类核心地物标签，对每幅影像采样 64 个像素并归一化，支持融合几何特征补充维度；模型搭建上，PSE 模块编码像素特征并聚合空间信息，TAE 模块通过多头注意力捕捉时序依赖，最终由 MLP 分类器完成类别映射，采用 Focal Loss 解决类别不平衡问题。
 
-PyTorch implementation of the model presented in 
-["Satellite Image Time Series Classification with Pixel-Set Encoders 
-and Temporal Self-Attention"](https://openaccess.thecvf.com/content_CVPR_2020/html/Garnot_Satellite_Image_Time_Series_Classification_With_Pixel-Set_Encoders_and_Temporal_CVPR_2020_paper.html) published ar CVPR 2020.
+`train.py` 实现 5 折交叉验证训练，拆分数据集后逐折训练，监控损失、准确率、mIoU 等指标，保存最优模型权重、训练日志和混淆矩阵，汇总多折结果计算整体性能；`inference.py` 加载训练好的权重对全量数据集批量推理，输出样本 ID、真实标签和预测标签并保存，支撑后续结果分析。
 
-![](./graphics/PSETAE.png)
+## 二、小组成员完成的工作
+作为课程作业核心内容，小组成员以保障项目可复现性为核心，从项目克隆、环境搭建到结果可视化完成模型全流程复现。
+1. **项目克隆与环境标准化搭建**：首先从代码仓库克隆目标项目源码，为保障环境配置的一致性和可复现性，小组成员采用 UV 工具快速下载并安装项目依赖包，梳理出 PyTorch、torchnet、scikit-learn、tqdm 等核心依赖的精准版本，形成标准化的环境配置文档，确保不同设备上均可快速复现实验环境。
+2. **数据准备与模型训练验证**：下载配套的 S2-2017-T31TFM 遥感影像数据集（含像素特征文件、44 类标签文件、均值标准差归一化文件），严格按照代码中 `sub_classes` 参数筛选 20 类地物标签，保证数据集格式与预处理逻辑完全匹配；固定随机种子以保障实验可复现，运行 `train.py` 执行 5 折交叉验证训练，全程监控每轮 epoch 的训练损失、验证准确率和 mIoU 变化，确认 dropout 层（概率 0.2）对缓解过拟合的有效性，每折训练完成后留存完整的最优模型权重、训练日志（trainlog.json）、测试指标（test_metrics.json）及混淆矩阵文件；运行 `inference.py` 加载最优权重对全量数据集推理，得到包含样本 ID、真实标签和预测标签的 npy 文件，所有输出文件均按统一目录结构保存，确保训练过程可追溯、可重复。
+3. **结果可视化与验证**：小组成员基于模型训练输出的两类核心数据制作了可视化图表：一类是每折训练过程的 Loss、Accuracy、IoU 变化折线图，直观呈现模型收敛过程；另一类是基于各折 `test_metrics.json` 汇总的测试指标折线图，用于评估模型在独立测试集上的最终性能，同时验证可视化结果与原始数据的一致性，进一步保障实验结果的可复现性。
 
+## 三、可视化图表说明
+小组成员基于模型训练输出的核心数据文件制作了两类可视化图表，从训练过程和最终测试性能两个维度反映模型效果，且所有图表均可复现验证：
 
-[Paper](https://openaccess.thecvf.com/content_CVPR_2020/html/Garnot_Satellite_Image_Time_Series_Classification_With_Pixel-Set_Encoders_and_Temporal_CVPR_2020_paper.html) abstract:
+### 1. 单折训练过程折线图（共5张）
+- 基于每折 `trainlog.json` 中的 epoch 级数据，分别绘制 Loss、Accuracy、IoU 随训练轮次的变化曲线，清晰呈现模型从欠拟合到收敛的完整过程，可追溯每一步训练的指标变化。
+<img width="2556" height="878" alt="e981718616be24679353915d19e552f9" src="https://github.com/user-attachments/assets/934e0843-b072-4a04-9623-de9c376b3015" />
+<img width="2556" height="873" alt="ae0301179bf63048344716c903cc39e7" src="https://github.com/user-attachments/assets/31f6c3f2-368c-4bf3-9558-c053a53a9bed" />
+<img width="1278" height="439" alt="aab895ed9e39b4bd198e2774a91a5c56" src="https://github.com/user-attachments/assets/0dbcb4f4-9236-45cb-9d64-708d251326a5" />
+<img width="2553" height="870" alt="d08fa80c72be99ebd7e5184abefbc0ae" src="https://github.com/user-attachments/assets/fe60feb7-8f33-4b24-b233-30ae467d5491" />
+<img width="2556" height="870" alt="6f7f4421b32787402300253d68ce8fb4" src="https://github.com/user-attachments/assets/26b9a658-4f46-4b8c-9b3c-78606f55ca4b" />
 
-*Satellite image time series, bolstered by their growing availability, are at the forefront of an extensive effort towards 
-automated Earth monitoring by international institutions. In particular, large-scale control of agricultural parcels is 
-an issue of major political and economic importance. In this regard, hybrid convolutional-recurrent neural architectures 
-have shown promising results for the automated classification of satellite image time series. We propose 
-an alternative approach in which the convolutional layers are advantageously replaced with encoders operating 
-on unordered sets of pixels to exploit the typically coarse resolution of publicly available satellite images. 
-We also propose to extract temporal features using a bespoke neural architecture based on self-attention 
-instead of recurrent networks. We demonstrate experimentally that our method not only outperforms previous 
-state-of-the-art approaches in terms of precision, but also significantly decreases processing time and memory 
-requirements. Lastly, we release a large open-access annotated dataset as a benchmark 
-for future work on satellite image time series.*
+### 2. 5折测试指标汇总折线图（当前展示图）
+- **测试准确率折线图**：基于各折 `test_metrics.json` 中的测试准确率数据，展示 5 折模型在独立测试集上的分类准确率（范围 93.66%~94.11%），验证模型在不同数据划分下的稳定性；
+- **测试损失折线图**：基于各折测试损失数据，展示模型在测试集上的损失值（范围 0.1426~0.1511），辅助判断模型是否存在过拟合；
+- **测试 IoU 折线图**：基于各折测试 mIoU 数据，展示模型在测试集上的空间分割能力（范围 0.4342~0.4508），体现模型对不同地物类别的分割稳定性。
+  <img width="2331" height="606" alt="5d127bf840f228847a9a65f80298e9c2" src="https://github.com/user-attachments/assets/bd458c97-9e1d-4690-801f-d00aafa15b6c" />
 
+这些图表的原始数据均来自实验过程中留存的 `test_metrics.json` 文件，可随时基于原始数据重新生成，验证了 PSE-TAE 模型在遥感影像分类任务中的有效性，也体现了训练过程的稳定性和模型泛化能力，同时保障了可视化结果的可复现性。
 
-## [UPDATES]
+## 四、项目复现过程中遇到的核心问题及解决
+在模型复现的环境搭建环节，为保障整体流程的可复现性，针对依赖兼容、硬件适配等核心问题进行了针对性解决，具体如下：
+1. **torchnet 与新版 PyTorch 兼容问题**：项目依赖的 torchnet 库与新版 PyTorch 存在接口不兼容问题，导致训练过程中 `ClassErrorMeter` 等指标计算模块报错。通过降级适配 PyTorch 版本，并调整 torchnet 相关调用逻辑，确保指标统计功能正常运行，且该适配方案已纳入环境配置文档，可复现解决该兼容问题。
+2. **CUDA 算力匹配问题**：不同设备的 CUDA 版本与 PyTorch 预编译版本不匹配，导致模型训练时出现“CUDA error: no kernel image is available for execution on the device”错误。通过梳理 PyTorch 与 CUDA 版本的对应关系，明确适配的版本组合并写入环境配置文档，确保不同算力设备均可按文档完成环境搭建，避免硬件适配导致的复现失败。
+3. **依赖版本精准性问题**：UV 工具快速安装依赖时，部分库（如 scikit-learn、tqdm）的最新版本与项目代码中数据处理、进度条展示逻辑存在冲突。通过锁定所有核心依赖的精准版本号（如 scikit-learn==1.0.2、tqdm==4.64.1），并在环境配置文档中明确标注，保障依赖安装的一致性，从源头避免版本差异导致的代码运行异常。
 
-- **17.08.2021** Check out our [new approach](https://github.com/VSainteuf/utae-paps) for panoptic segmentation of satellite image time series, as well as our [new benchmark dataset](https://github.com/VSainteuf/pastis-benchmark) for semantic and panotpic segmentation of satellite image time series.
-- **17.07.2020** Check our [*lightweight* version of the TAE](https://github.com/VSainteuf/lightweight-temporal-attention-pytorch), a channel grouping strategy brings better performance with 10 times fewer parameters.
-- **30.03.2020** Dataset preparation script available in 'preprocessing' folder + Variation of the PixeSetData class that loads all samples to RAM at init.  
-- **12.03.2020** Bug fix in the TAE script (*see pull request comments*): if you were using a previous version, re-download the pre-trained weights. 
-
-## Requirements
-- Pytorch + torchnet
-- numpy + pandas + sklearn
-
-The code has been tested in the following environment:
-
-Ubuntu 18.04.1 LTS, python 3.6.6, pytorch 1.1.0, CUDA 10.0
-
-
-## Downloads
-
-### Datasets
-
-A *toy version* of the Pixel-set dataset can be directly downloaded [here](http://recherche.ign.fr/llandrieu/TAE/S2-2017-T31TFM-PixelSet-TOY.zip), 
-to get an idea of the dataset structure.
-
-The complete Pixel-set and Pixel-patch datasets are accessible on Zenodo at the following links:
-
-- [Pixel-Set dataset](https://zenodo.org/record/5815488) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5815488.svg)](https://doi.org/10.5281/zenodo.5815488)
-
-- [Pixel-Patch dataset](https://zenodo.org/record/5815523) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5815523.svg)](https://doi.org/10.5281/zenodo.5815523)
-
-
-### Pre-trained weights
-
-We also provide the [pre-trained weights](http://recherche.ign.fr/llandrieu/TAE/PSETAE-PreTrainedWeights-v2.zip) for inference. 
-
-## Code 
-
-### Code structure
-- The PyTorch implementations of the PSE, TAE and PSE+TAE architectures are located in the `models` folder. 
-- The folder `learning` contains some additional utilities that are used for training. 
-- The repository also contains two 
-high-level scripts `train.py` and `inference.py` that should make it easier to get started. 
-
-### Code Usage 
-
-#### Reproduce
-
-Run the `train.py` script to reproduce the results of the PSE+TAE architecture presented in the paper. 
-You will just need to specify the path to the *Pixel-Set* dataset (link above) with the `--dataset_folder` agrument. 
-
-#### Experiment
-
-The default settings of the `train.py` script are those used to produce the results in the paper. 
-Yet, some options are already implemented to play around with the model's hyperparameters and other training settings. 
-These options are accessible through an argparse menu (see directly inside the script). 
-
-
-#### Re-use
-
-- You can use the [pre-trained weights](http://recherche.ign.fr/llandrieu/TAE/PSETAE-PreTrainedWeights-v2.zip) in the `inference.py` script to produce predictions on our dataset or your own, provided that it is formatted as per the indications below. You will need to pass the path to the unzipped folder containing the weights with the `--weight_dir` argument. (*do not* uncompress the `model.pth.tar` files as the script takes care of this.) 
-
-- The two components of our model (the PSE and the TAE) are implemented as stand-alone 
-pytorch nn.Modules (in `pse.py` and `tae.py`) and can be used for other applications.
-While the PSE needs to be used in combination with the PixelSetData class, 
-the TAE can be applied to any sequential data (with input tensors of shape batch_size x sequence_length x embedding_size). 
-
-## Data format
-
-In order to use the PixelSetData dataset classs with other data than those provided in the link above,
- the data folder should be structured in the following fashion: 
- 
-#### Data structure
-
-###### Samples
-
-Each dataset sample consits in the different observations for a single parcel. 
-The observations are aggregated in a single array of shape **TxCxS** with **T** the number of temporal observations,
- **C** the number of channels, and **S** the number of pixels in the parcel (different for each data sample).
-Each of these arrays should be stored separately in a *numpy* file: `unique_id_of_the_sample.npy`
-
-All the individual `.npy` files are stored in the same sub-directory **DATA**.
-
-###### Normalisation values
-The normalisation values should be computed beforehand and stored in the form of a tuple of arrays (means, stds) 
-in a pickle file in the main folder. The PixelSetData dataset class can adapt to different normalisation strategies 
-depending on the shape of the arrays:
-- Channel-wise normalisation for each date &rarr; the arrays have have shape (TxC)
-- Channel-wise normalisation &rarr; the arrays have shape (T,)
-- Global normalisation &rarr;  In that case each of the two arrays consists in a single value. 
-
-#### Labels
-
-The labels should be stored in the `META/labels.json` file. This file has a nested dictionary like structure and 
-can contain multiple nomenclatures:
-
-
-```
-labels.json = {
-  "Name_of_nomenclature1": {
-    "unique_id_0": label_0,
-    ...,
-    "unique_id_N": label_N,
-    }, 
-  "Name_of_nomenclature2": {
-    "unique_id_0": label_0,
-    ...,
-    "unique_id_N": label_N,
-    }
-}
-```
-
-
-
-#### Dates and pre-computed features 
-
-The dates of the observations, if they are going to be used for the positional encoding,
- should be stored in **YYYYMMDD** format in the `META/dates.json` file:
-
-```
-dates.json = {
-    1: date_0,
-    ...,
-    T: date_T,
-}
-```
-
-If some pre-computed static parcel features are to be used between the two MLPs of the PSE, 
-they should be stored in another json file `META/name_of_features.json`:
-
-```
-name_of_features.json = {
-    "unique_id_0": features_0,
-    ...,
-    "unique_id_N": features_N,
-}
-```
-
-#### Folder structure 
-The dataset folder should thus have the follwoing structure:
-
-Dataset_folder <br/>
-│   normalisation_values.pkl     
-└─DATA <br/>
-│&nbsp;&nbsp;&nbsp;&nbsp;│  sample0.npy<br/>
-│&nbsp;&nbsp;&nbsp;&nbsp;│  . . .<br/>
-│&nbsp;&nbsp;&nbsp;&nbsp;│  sampleN.npy<br/>
-└─META <br/>
- &nbsp;&nbsp;&nbsp;&nbsp; │  labels.json<br/>
- &nbsp;&nbsp;&nbsp;&nbsp; │  dates.json<br/>
- &nbsp;&nbsp;&nbsp;&nbsp; │  geomfeat.json<br/>
-
-
-
-
-
-
-## Credits
-
-- The **Temporal Attention Encoder** is heavily inspired by 
-[the works of Vaswani et al.](https://papers.nips.cc/paper/7181-attention-is-all-you-need.pdf) on the Transformer, 
-and [this pytorch implementation](https://github.com/jadore801120/attention-is-all-you-need-pytorch) 
-served as code base for the TAE.py script. 
-- Credits to  github.com/clcarwin/ for [the pytorch implementation](github.com/clcarwin/focal_loss_pytorch) 
-of the focal loss
-
-## Reference
-
-In case you use part of the present code, please include a citation to the following paper:
-
-```
-@article{garnot2019psetae,
-  title={Satellite Image Time Series Classification with Pixel-Set Encoders and Temporal Self-Attention},
-  author={Sainte Fare Garnot, Vivien  and Landrieu, Loic and Giordano, Sebastien and Chehata, Nesrine},
-  journal={CVPR},
-  year={2020}
-}
-
-```
