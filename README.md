@@ -1,7 +1,13 @@
 # PSE-TAE 遥感影像时空分类模型复现
 
 本仓库为课程作业项目，围绕 CVPR 2020 论文 **Satellite Image Time Series Classification with Pixel-Set Encoders and Temporal Self-Attention** 进行代码复现、训练验证与结果可视化。项目基于 PSE（Pixel-Set Encoder）与 TAE（Temporal Attention Encoder）架构，面向 Sentinel-2 卫星影像时间序列数据开展地物分类实验，重点验证该模型在遥感影像时空分类任务中的有效性、稳定性与可复现性。
+## 小组成员信息
 
+| 角色 | 姓名 | 学号 |
+| --- | --- | --- |
+| 组长 | 王少艺 | 2025303120175 |
+| 组员 | 余娟 | 2025303110117 |
+| 组员 | 丁红俊 | 2025303110115 |
 * 论文名称：Satellite Image Time Series Classification with Pixel-Set Encoders and Temporal Self-Attention
 * 论文会议：CVPR 2020 Oral
 * 论文 DOI：10.1109/CVPR42600.2020.01233
