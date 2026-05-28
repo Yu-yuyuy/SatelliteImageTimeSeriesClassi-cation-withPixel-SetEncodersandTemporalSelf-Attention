@@ -112,12 +112,6 @@ pip install -r requirements.txt
 * Pixel-Patch dataset：https://zenodo.org/record/5815523
 * Toy dataset：http://recherche.ign.fr/llandrieu/TAE/S2-2017-T31TFM-PixelSet-TOY.zip
 
-如需使用本课程复现实验所用数据，请从以下链接下载：
-
-```text
-数据下载链接：请在此处填写网盘或服务器链接
-提取码：如有，请填写
-```
 
 下载完成后，请将数据解压到项目根目录下的 `data/` 文件夹中。
 
