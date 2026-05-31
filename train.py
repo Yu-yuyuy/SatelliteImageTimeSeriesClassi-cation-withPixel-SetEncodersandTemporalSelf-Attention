@@ -133,31 +133,27 @@ def prepare_output(config):
 
 
 def checkpoint(fold, log, config):
-    with open(os.path.join(config['res_dir'], 'Fold_{}'.format(fold), 'trainlog.json'), 'w', encoding='utf-8') as outfile:
+    with open(os.path.join(config['res_dir'], 'Fold_{}'.format(fold), 'trainlog.json'), 'w') as outfile:
         json.dump(log, outfile, indent=4)
 
 
 def save_results(fold, metrics, conf_mat, config):
-    with open(os.path.join(config['res_dir'], 'Fold_{}'.format(fold), 'test_metrics.json'), 'w', encoding='utf-8') as outfile:
+    with open(os.path.join(config['res_dir'], 'Fold_{}'.format(fold), 'test_metrics.json'), 'w') as outfile:
         json.dump(metrics, outfile, indent=4)
-    # 修复：Windows文件锁定问题，自动关闭文件
-    with open(os.path.join(config['res_dir'], 'Fold_{}'.format(fold), 'conf_mat.pkl'), 'wb') as f:
-        pkl.dump(conf_mat, f)
+    pkl.dump(conf_mat, open(os.path.join(config['res_dir'], 'Fold_{}'.format(fold), 'conf_mat.pkl'), 'wb'))
 
 
 def overall_performance(config):
     cm = np.zeros((config['num_classes'], config['num_classes']))
     for fold in range(1, config['kfold'] + 1):
-        # 修复：安全读取pkl文件
-        with open(os.path.join(config['res_dir'], 'Fold_{}'.format(fold), 'conf_mat.pkl'), 'rb') as f:
-            cm += pkl.load(f)
+        cm += pkl.load(open(os.path.join(config['res_dir'], 'Fold_{}'.format(fold), 'conf_mat.pkl'), 'rb'))
 
     _, perf = confusion_matrix_analysis(cm)
 
     print('Overall performance:')
     print('Acc: {},  IoU: {}'.format(perf['Accuracy'], perf['MACRO_IoU']))
 
-    with open(os.path.join(config['res_dir'], 'overall.json'), 'w', encoding='utf-8') as file:
+    with open(os.path.join(config['res_dir'], 'overall.json'), 'w') as file:
         file.write(json.dumps(perf, indent=4))
 
 
@@ -166,7 +162,7 @@ def main(config):
     torch.manual_seed(config['rdm_seed'])
     prepare_output(config)
 
-    mean_std = pkl.load(open(config['dataset_folder'] + '/normalisation_values.pkl', 'rb'))
+    mean_std = pkl.load(open(config['dataset_folder'] + '/S2-2017-T31TFM-meanstd.pkl', 'rb'))
     extra = 'geomfeat' if config['geomfeat'] else None
 
     if config['preload']:
@@ -208,6 +204,8 @@ def main(config):
 
         trainlog = {}
 
+
+
         best_mIoU = 0
         for epoch in range(1, config['epochs'] + 1):
             print('EPOCH {}/{}'.format(epoch, config['epochs']))
@@ -233,7 +231,7 @@ def main(config):
 
         print('Testing best epoch . . .')
         model.load_state_dict(
-            torch.load(os.path.join(config['res_dir'], 'Fold_{}'.format(fold + 1), 'model.pth.tar'), map_location=device)['state_dict'])
+            torch.load(os.path.join(config['res_dir'], 'Fold_{}'.format(fold + 1), 'model.pth.tar'))['state_dict'])
         model.eval()
 
         test_metrics, conf_mat = evaluation(model, criterion, test_loader, device=device, mode='test', config=config)
@@ -255,7 +253,7 @@ if __name__ == '__main__':
     parser.add_argument('--res_dir', default='./results', help='Path to the folder where the results should be stored')
     parser.add_argument('--num_workers', default=8, type=int, help='Number of data loading workers')
     parser.add_argument('--rdm_seed', default=1, type=int, help='Random seed')
-    parser.add_argument('--device', default='cpu', type=str,
+    parser.add_argument('--device', default='cuda', type=str,
                         help='Name of device to use for tensor computations (cuda/cpu)')
     parser.add_argument('--display_step', default=50, type=int,
                         help='Interval in batches between display of training metrics')
@@ -265,8 +263,7 @@ if __name__ == '__main__':
 
     # Training parameters
     parser.add_argument('--kfold', default=5, type=int, help='Number of folds for cross validation')
-    # ✅ 核心修改：每折训练轮数从 100 → 3
-    parser.add_argument('--epochs', default=3, type=int, help='Number of epochs per fold')
+    parser.add_argument('--epochs', default=100, type=int, help='Number of epochs per fold')
     parser.add_argument('--batch_size', default=128, type=int, help='Batch size')
     parser.add_argument('--lr', default=0.001, type=float, help='Learning rate')
     parser.add_argument('--gamma', default=1, type=float, help='Gamma parameter of the focal loss')
